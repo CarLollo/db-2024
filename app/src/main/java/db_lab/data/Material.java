@@ -46,9 +46,25 @@ public final class Material {
     public final class DAO {
 
         public static Map<Material, Float> forProduct(Connection connection, int productId) {
+            try (
+                var statement = DAOUtils.prepare(connection, Queries.PRODUCT_COMPOSITION, productId);
+                var resultSet = statement.executeQuery();
+            ) {
+                var materials = new HashMap<Material,Float>();
+                while (resultSet.next()) {
+                    var mCode = resultSet.getInt("m.code");
+                    var percent = resultSet.getFloat("c.percent");
+                    var desc = resultSet.getString("m.description");
+                    var material = new Material(mCode, desc);
+                    materials.put(material, percent);
+                }
+                return materials;
+            } catch (Exception e) {
+                throw new DAOException(e);
+            }
             // Iterating through a resultSet:
             // https://docs.oracle.com/javase/tutorial/jdbc/basics/retrieving.html
-            throw new UnsupportedOperationException("Unimplemented");
+            // throw new UnsupportedOperationException("Unimplemented");
         }
     }
 }
